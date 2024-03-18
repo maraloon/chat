@@ -4,7 +4,7 @@
 <title>Chat Example</title>
 <script type="text/javascript">
 window.onload = function () {
-    var conn;
+    var socket;
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
 
@@ -17,25 +17,25 @@ window.onload = function () {
     }
 
     document.getElementById("form").onsubmit = function () {
-        if (!conn) {
+        if (!socket) {
             return false;
         }
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+        socket.send(msg.value);
         msg.value = "";
         return false;
     };
 
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
-        conn.onclose = function (evt) {
+        socket = new WebSocket("ws://" + document.location.host + "/ws");
+        socket.onclose = function (evt) {
             var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
+            item.innerHTML = "<b>socketection closed.</b>";
             appendLog(item);
         };
-        conn.onmessage = function (evt) {
+        socket.onmessage = function (evt) {
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
                 var item = document.createElement("div");
