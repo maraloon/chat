@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -35,6 +36,7 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
+    nickname string
 	hub *Hub
 
 	// The websocket connection.
@@ -65,7 +67,13 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+
+        nicknameBytes := []byte(c.nickname+": ")
+        newMessage := make([]byte, 0, len(nicknameBytes)+len(message))
+        newMessage = append(newMessage, nicknameBytes...)
+        newMessage = append(newMessage, message...)
+
+		message = bytes.TrimSpace(bytes.Replace(newMessage, newline, space, -1))
 		c.hub.broadcast <- message
 	}
 }
@@ -124,6 +132,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{
+        nickname: generateNickname(),
 		hub:       hub,
 		websocket: websocket,
 		send:      make(chan []byte, 256),
@@ -134,4 +143,23 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// new goroutines.
 	go client.writePump()
 	go client.readPump()
+}
+
+func generateNickname() string {
+    length := 6
+    // Seed the random number generator
+    rand.Seed(time.Now().UnixNano())
+
+    // Define the alphabet
+    alphabet := "abcdefghijklmnopqrstuvwxyz"
+
+    // Create a buffer to store the generated string
+    result := make([]byte, length)
+
+    // Generate random characters from the alphabet
+    for i := 0; i < length; i++ {
+        result[i] = alphabet[rand.Intn(len(alphabet))]
+    }
+
+    return string(result)
 }
