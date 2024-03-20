@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chat/client"
 	"flag"
 	"log"
 	"net/http"
@@ -24,11 +25,11 @@ func serveWebClient(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
-	hub := newHub()
-	go hub.run()
+    hub := client.NewHub()
+	go hub.Run()
 	http.HandleFunc("/", serveWebClient)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r)
+		client.ServeWs(hub, w, r)
 	})
 	server := &http.Server{
 		Addr:              *addr,
