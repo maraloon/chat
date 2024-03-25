@@ -2,6 +2,7 @@ package main
 
 import (
 	"chat/client"
+	infrastructure "chat/infrastucture"
 	"flag"
 	"log"
 	"net/http"
@@ -27,6 +28,10 @@ func main() {
 	flag.Parse()
     hub := client.NewHub()
 	go hub.Run()
+
+    infrastructure.LoadEnv()
+    infrastructure.Migrate()
+
 	http.HandleFunc("/", serveWebClient)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		client.ServeWs(hub, w, r)

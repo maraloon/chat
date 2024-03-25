@@ -2,9 +2,10 @@ package infrastructure
 
 import (
 	"fmt"
+	"os"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"os"
 )
 
 // Database struct
@@ -33,5 +34,28 @@ func NewDatabase() Database {
 	return Database{
 		DB: db,
 	}
+}
 
+type Chat struct {
+	gorm.Model
+	Name  string
+	Users []User `gorm:"many2many:chat_users;"`
+}
+
+type User struct {
+	gorm.Model
+	Nickname string
+	Chats    []Chat `gorm:"many2many:chat_users;"`
+}
+
+type Message struct {
+	gorm.Model
+	ChatId uint
+	UserId uint
+	Text   string
+}
+
+func Migrate() {
+	db := NewDatabase()
+	db.DB.AutoMigrate(&Chat{}, &User{}, &Message{})
 }
