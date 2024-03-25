@@ -8,13 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Database struct
-type Database struct {
-	DB *gorm.DB
-}
-
 // NewDatabase : intializes and returns mysql db
-func NewDatabase() Database {
+func NewDatabase() *gorm.DB {
 	USER := os.Getenv("MYSQL_USER")
 	PASS := os.Getenv("MYSQL_PASSWORD")
 	HOST := os.Getenv("DB_HOST")
@@ -23,6 +18,7 @@ func NewDatabase() Database {
 	URL := fmt.Sprintf(
 		"%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		USER, PASS, HOST, DBNAME)
+
 	fmt.Println(URL)
 	db, err := gorm.Open(mysql.Open(URL))
 
@@ -31,9 +27,7 @@ func NewDatabase() Database {
 
 	}
 	fmt.Println("Database connection established")
-	return Database{
-		DB: db,
-	}
+    return db;
 }
 
 type Chat struct {
@@ -57,5 +51,5 @@ type Message struct {
 
 func Migrate() {
 	db := NewDatabase()
-	db.DB.AutoMigrate(&Chat{}, &User{}, &Message{})
+	db.AutoMigrate(&Chat{}, &User{}, &Message{})
 }
