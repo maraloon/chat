@@ -29,7 +29,6 @@ func main() {
     hub := client.NewHub()
 	go hub.Run()
 
-    infrastructure.LoadEnv()
     infrastructure.Migrate()
 
 	http.HandleFunc("/", serveWebClient)

@@ -18,12 +18,11 @@ import (
 type RealTimeGenerator struct{}
 
 func main() {
-	infrastructure.LoadEnv()
 	db := infrastructure.NewDatabase()
 
 	create100Chats(db)
 	create100Users(db)
-    // connectChatsWithUsers() // TODO: later
+	// connectChatsWithUsers() // TODO: later
 	createMillionMessages(db)
 }
 
@@ -55,19 +54,23 @@ func createMillionMessages(db *gorm.DB) {
 	db.Model(&infrastructure.Message{}).Count(&count)
 
 	if count == 0 {
-        // TODO: вот тут поставить 1млн,
-        // banchmark времени исполнения
-        // сделать 10 потоков, снова посмотреть время
+		// TODO: вот тут поставить 1млн,
+		// banchmark времени исполнения
+		// сделать 10 потоков, снова посмотреть время
 		for i := 0; i < 100; i++ {
-            var msg = chatMessages[rand.Intn(len(chatMessages))];
-			db.Create(&infrastructure.Message{
-                // TODO: hardcoded ids
-                ChatId: uint(rand.Intn(99)+1),
-                UserId: uint(rand.Intn(99)+1),
-                Text: msg,
-            })
+            createMessage(db)
 		}
 	}
+}
+
+func createMessage(db *gorm.DB) {
+    var msg = chatMessages[rand.Intn(len(chatMessages))]
+	db.Create(&infrastructure.Message{
+		// TODO: hardcoded ids
+		ChatId: uint(rand.Intn(99) + 1),
+		UserId: uint(rand.Intn(99) + 1),
+		Text:   msg,
+	})
 }
 
 func generateRandomChatName() string {

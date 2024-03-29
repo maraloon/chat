@@ -2,14 +2,22 @@ package infrastructure
 
 import (
 	"fmt"
-	"os"
-
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
+	"os"
 )
+func LoadEnv() {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatalf("unable to load .env file")
+	}
+}
 
 // NewDatabase : intializes and returns mysql db
 func NewDatabase() *gorm.DB {
+	LoadEnv()
 	USER := os.Getenv("MYSQL_USER")
 	PASS := os.Getenv("MYSQL_PASSWORD")
 	HOST := os.Getenv("DB_HOST")
