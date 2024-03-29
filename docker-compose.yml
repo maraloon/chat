@@ -1,14 +1,18 @@
-version: '3'
 services:
   db:
     image: 'mysql/mysql-server:8.0'
     ports:
-      - "${MYSQL_PORT}:3306"
+      - '${FORWARD_MYSQL_PORT:-3306}:3306'
     environment:
-      - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}"
-      - "MYSQL_USER=${MYSQL_USER}"
-      - "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
-      - "MYSQL_DATABASE=${MYSQL_DATABASE}"
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - 'chat-mysql:/var/lib/mysql'
+    networks:
+      - chat
   web:
     build: .
     ports:
@@ -17,6 +21,13 @@ services:
       - ".:/app"
     depends_on:
       - db
+    networks:
+      - chat
     links:
       - "db:database"
-
+networks:
+  chat:
+    driver: bridge
+volumes:
+  chat-mysql:
+    driver: local
