@@ -5,10 +5,12 @@ import (
 	"testing"
 )
 
-func BenchmarkCreateMessage(b *testing.B) {
+func BenchmarkCreateMillionMessagesAsync(b *testing.B) {
 	db := infrastructure.NewDatabase()
+    createMillionMessagesAsync(db)
+}
 
-	for i := 0; i < 100; i++ {
-		createMessage(db)
-	}
+func BenchmarkCreateMillionMessages(b *testing.B) {
+	db := infrastructure.NewDatabase()
+    createMillionMessages(db)
 }

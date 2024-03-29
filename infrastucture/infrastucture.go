@@ -2,11 +2,13 @@ package infrastructure
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
-	"os"
+	"gorm.io/gorm/logger"
 )
 func LoadEnv() {
 	err := godotenv.Load("../.env")
@@ -28,8 +30,9 @@ func NewDatabase() *gorm.DB {
 		USER, PASS, HOST, DBNAME)
 
 	fmt.Println(URL)
-	db, err := gorm.Open(mysql.Open(URL))
-
+	db, err := gorm.Open(mysql.Open(URL), &gorm.Config{
+      Logger: logger.Default.LogMode(logger.Silent),
+    })
 	if err != nil {
 		panic("Failed to connect to database!")
 

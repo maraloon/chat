@@ -4,6 +4,7 @@ import (
 	infrastructure "chat/infrastucture"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,10 +21,11 @@ type RealTimeGenerator struct{}
 func main() {
 	db := infrastructure.NewDatabase()
 
-	create100Chats(db)
-	create100Users(db)
+	// create100Chats(db)
+	// create100Users(db)
 	// connectChatsWithUsers() // TODO: later
-	createMillionMessages(db)
+	// createMillionMessages(db)
+	createMillionMessagesAsync(db)
 }
 
 func create100Chats(db *gorm.DB) {
@@ -49,6 +51,27 @@ func create100Users(db *gorm.DB) {
 
 }
 
+func createMillionMessagesAsync(db *gorm.DB) {
+	var wg sync.WaitGroup
+
+	// Define a function to create a message
+	createMessage := func() {
+		defer wg.Done() // Notify WaitGroup that this goroutine is done
+
+		// Create message in the database
+		createMessage(db)
+	}
+
+	// Launch 10 goroutines
+	for i := 0; i < 100; i++ {
+		wg.Add(1) // Increment WaitGroup counter
+		go createMessage()
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+}
 func createMillionMessages(db *gorm.DB) {
 	var count int64
 	db.Model(&infrastructure.Message{}).Count(&count)
@@ -58,13 +81,13 @@ func createMillionMessages(db *gorm.DB) {
 		// banchmark времени исполнения
 		// сделать 10 потоков, снова посмотреть время
 		for i := 0; i < 100; i++ {
-            createMessage(db)
+			createMessage(db)
 		}
 	}
 }
 
 func createMessage(db *gorm.DB) {
-    var msg = chatMessages[rand.Intn(len(chatMessages))]
+	var msg = chatMessages[rand.Intn(len(chatMessages))]
 	db.Create(&infrastructure.Message{
 		// TODO: hardcoded ids
 		ChatId: uint(rand.Intn(99) + 1),
