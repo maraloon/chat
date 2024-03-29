@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 func LoadEnv() {
-	err := godotenv.Load("../.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("unable to load .env file")
 	}

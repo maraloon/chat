@@ -24,8 +24,8 @@ func main() {
 	// create100Chats(db)
 	// create100Users(db)
 	// connectChatsWithUsers() // TODO: later
-	// createMillionMessages(db)
-	createMillionMessagesAsync(db)
+	createMillionMessages(db)
+	// createMillionMessagesAsync(db)
 }
 
 func create100Chats(db *gorm.DB) {
@@ -63,7 +63,7 @@ func createMillionMessagesAsync(db *gorm.DB) {
 	}
 
 	// Launch 10 goroutines
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 100000; i++ {
 		wg.Add(1) // Increment WaitGroup counter
 		go createMessage()
 	}
@@ -73,17 +73,17 @@ func createMillionMessagesAsync(db *gorm.DB) {
 
 }
 func createMillionMessages(db *gorm.DB) {
-	var count int64
-	db.Model(&infrastructure.Message{}).Count(&count)
+	// var count int64
+	// db.Model(&infrastructure.Message{}).Count(&count)
 
-	if count == 0 {
+	// if count == 0 {
 		// TODO: вот тут поставить 1млн,
 		// banchmark времени исполнения
 		// сделать 10 потоков, снова посмотреть время
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 100000; i++ {
 			createMessage(db)
 		}
-	}
+	// }
 }
 
 func createMessage(db *gorm.DB) {
