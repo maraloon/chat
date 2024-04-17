@@ -63,7 +63,8 @@ func createMillionMessagesAsync(db *gorm.DB) {
 	}
 
 	// Launch 10 goroutines
-	for i := 0; i < 100000; i++ {
+    // TODO: it's create random number (100*n) of messages. Why?
+	for i := 0; i < 100; i++ {
 		wg.Add(1) // Increment WaitGroup counter
 		go createMessage()
 	}
@@ -72,6 +73,7 @@ func createMillionMessagesAsync(db *gorm.DB) {
 	wg.Wait()
 
 }
+
 func createMillionMessages(db *gorm.DB) {
 	// var count int64
 	// db.Model(&infrastructure.Message{}).Count(&count)
@@ -80,7 +82,7 @@ func createMillionMessages(db *gorm.DB) {
 		// TODO: вот тут поставить 1млн,
 		// banchmark времени исполнения
 		// сделать 10 потоков, снова посмотреть время
-		for i := 0; i < 100000; i++ {
+		for i := 0; i < 100; i++ {
 			createMessage(db)
 		}
 	// }

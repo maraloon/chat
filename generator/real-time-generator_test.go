@@ -5,12 +5,17 @@ import (
 	"testing"
 )
 
+var db = infrastructure.NewDatabase()
+
+// WARN: запускай внутри контейнера
 func BenchmarkCreateMillionMessagesAsync(b *testing.B) {
-	db := infrastructure.NewDatabase()
-    createMillionMessagesAsync(db)
+	for i := 0; i < b.N; i++ {
+		createMillionMessagesAsync(db)
+	}
 }
 
-func BenchmarkCreateMillionMessages(b *testing.B) {
-	db := infrastructure.NewDatabase()
-    createMillionMessages(db)
-}
+// func BenchmarkCreateMillionMessages(b *testing.B) {
+// 	for i := 0; i < b.N; i++ {
+// 		createMillionMessages(db)
+// 	}
+// }
