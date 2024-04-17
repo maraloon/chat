@@ -4,7 +4,6 @@ import (
 	infrastructure "chat/infrastucture"
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -52,26 +51,17 @@ func create100Users(db *gorm.DB) {
 }
 
 func createMillionMessagesAsync(db *gorm.DB) {
-	var wg sync.WaitGroup
-
-	// Define a function to create a message
-	createMessage := func() {
-		defer wg.Done() // Notify WaitGroup that this goroutine is done
-
-		// Create message in the database
-		createMessage(db)
+	// for i := 0; i < 2; i++ {
+	f := func() {
+		for i := 0; i < 10; i++ {
+            fmt.Println(i)
+			createMessage(db)
+		}
 	}
+	// }
 
-	// Launch 10 goroutines
-    // TODO: it's create random number (100*n) of messages. Why?
-	for i := 0; i < 100; i++ {
-		wg.Add(1) // Increment WaitGroup counter
-		go createMessage()
-	}
-
-	// Wait for all goroutines to finish
-	wg.Wait()
-
+    // f()
+    go f()
 }
 
 func createMillionMessages(db *gorm.DB) {
@@ -79,23 +69,24 @@ func createMillionMessages(db *gorm.DB) {
 	// db.Model(&infrastructure.Message{}).Count(&count)
 
 	// if count == 0 {
-		// TODO: вот тут поставить 1млн,
-		// banchmark времени исполнения
-		// сделать 10 потоков, снова посмотреть время
-		for i := 0; i < 100; i++ {
-			createMessage(db)
-		}
+	// TODO: вот тут поставить 1млн,
+	// banchmark времени исполнения
+	// сделать 10 потоков, снова посмотреть время
+	for i := 0; i < 10; i++ {
+		createMessage(db)
+	}
 	// }
 }
 
 func createMessage(db *gorm.DB) {
 	var msg = chatMessages[rand.Intn(len(chatMessages))]
-	db.Create(&infrastructure.Message{
-		// TODO: hardcoded ids
-		ChatId: uint(rand.Intn(99) + 1),
-		UserId: uint(rand.Intn(99) + 1),
-		Text:   msg,
-	})
+    fmt.Println(msg)
+	// db.Create(&infrastructure.Message{
+	// 	// TODO: hardcoded ids
+	// 	ChatId: uint(rand.Intn(99) + 1),
+	// 	UserId: uint(rand.Intn(99) + 1),
+	// 	Text:   msg,
+	// })
 }
 
 func generateRandomChatName() string {
