@@ -4,6 +4,7 @@ import (
 	infrastructure "chat/infrastucture"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -51,17 +52,20 @@ func create100Users(db *gorm.DB) {
 }
 
 func createMillionMessagesAsync(db *gorm.DB) {
-	// for i := 0; i < 2; i++ {
-	f := func() {
-		for i := 0; i < 10; i++ {
-            fmt.Println(i)
-			createMessage(db)
-		}
-	}
-	// }
 
-    // f()
-    go f()
+	var wg sync.WaitGroup
+	wg.Add(10)
+
+	for i := 0; i < 1000; i++ {
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 10; i++ {
+				createMessage(db)
+			}
+		}()
+	}
+
+    wg.Wait()
 }
 
 func createMillionMessages(db *gorm.DB) {
@@ -80,13 +84,13 @@ func createMillionMessages(db *gorm.DB) {
 
 func createMessage(db *gorm.DB) {
 	var msg = chatMessages[rand.Intn(len(chatMessages))]
-    fmt.Println(msg)
-	// db.Create(&infrastructure.Message{
-	// 	// TODO: hardcoded ids
-	// 	ChatId: uint(rand.Intn(99) + 1),
-	// 	UserId: uint(rand.Intn(99) + 1),
-	// 	Text:   msg,
-	// })
+	fmt.Println(msg)
+	db.Create(&infrastructure.Message{
+		// TODO: hardcoded ids
+		ChatId: uint(rand.Intn(99) + 1),
+		UserId: uint(rand.Intn(99) + 1),
+		Text:   msg,
+	})
 }
 
 func generateRandomChatName() string {
