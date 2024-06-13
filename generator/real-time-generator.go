@@ -4,6 +4,7 @@ import (
 	infrastructure "chat/infrastucture"
 	"fmt"
 	"math/rand"
+	"runtime"
 	"sync"
 	"time"
 
@@ -24,8 +25,7 @@ func main() {
 	// create100Chats(db)
 	// create100Users(db)
 	// connectChatsWithUsers() // TODO: later
-	createMillionMessages(db)
-	// createMillionMessagesAsync(db)
+	createMillionMessagesAsync(db)
 }
 
 func create100Chats(db *gorm.DB) {
@@ -52,39 +52,33 @@ func create100Users(db *gorm.DB) {
 }
 
 func createMillionMessagesAsync(db *gorm.DB) {
+	// numCPU := runtime.NumCPU()
+	// fmt.Printf("cpu count: %d", numCPU)
+	// fmt.Println()
 
+	bestGoroutinesNum := 64
+	// start := time.Now()
 	var wg sync.WaitGroup
-	wg.Add(10)
+	wg.Add(bestGoroutinesNum)
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < bestGoroutinesNum; i++ {
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 10; i++ {
+			for i := 0; i < 16384/bestGoroutinesNum; i++ {
 				createMessage(db)
 			}
 		}()
 	}
 
-    wg.Wait()
-}
-
-func createMillionMessages(db *gorm.DB) {
-	// var count int64
-	// db.Model(&infrastructure.Message{}).Count(&count)
-
-	// if count == 0 {
-	// TODO: вот тут поставить 1млн,
-	// banchmark времени исполнения
-	// сделать 10 потоков, снова посмотреть время
-	for i := 0; i < 10; i++ {
-		createMessage(db)
-	}
-	// }
+	wg.Wait()
+	// fmt.Println()
+	// fmt.Printf("Использовано горутин: %d, время выполнения: %v\n", g, time.Since(start))
 }
 
 func createMessage(db *gorm.DB) {
 	var msg = chatMessages[rand.Intn(len(chatMessages))]
-	fmt.Println(msg)
+	// fmt.Println(msg)
+	// fmt.Print(".")
 	db.Create(&infrastructure.Message{
 		// TODO: hardcoded ids
 		ChatId: uint(rand.Intn(99) + 1),
