@@ -4,7 +4,6 @@ import (
 	infrastructure "chat/infrastucture"
 	"fmt"
 	"math/rand"
-	"runtime"
 	"sync"
 	"time"
 
@@ -59,22 +58,37 @@ func create100Users(db *gorm.DB) {
 	}
 }
 
+// func worker(db *gorm.DB, jobs <-chan int, results chan<- int) {
+// 	for j := range jobs {
+// 		createMessage(db)
+// 		results <- j
+// 	}
+// }
+
 func createMessages(db *gorm.DB) {
-	messagesNum := 16384 // it't 64*256
+	messagesNum := 200
 
-	var wg sync.WaitGroup
-	wg.Add(goroutinesNum)
+	jobs := make(chan int, messagesNum)
+	results := make(chan int, messagesNum)
 
-	for i := 0; i < goroutinesNum; i++ {
+	for w := 0; w <= goroutinesNum; w++ {
 		go func() {
-			defer wg.Done()
-			for i := 0; i < messagesNum/goroutinesNum; i++ {
+			for j := range jobs {
 				createMessage(db)
+				results <- j
 			}
 		}()
 	}
 
-	wg.Wait()
+	for j := 1; j <= messagesNum; j++ {
+		jobs <- j
+	}
+
+	close(jobs)
+
+	for a := 1; a <= messagesNum; a++ {
+		<-results
+	}
 }
 
 func createMessage(db *gorm.DB) {
