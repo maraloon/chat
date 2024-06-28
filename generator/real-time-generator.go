@@ -11,13 +11,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// var user = &infrastructure.User{}
-// var chat = &infrastructure.Chat{}
-// var message = &infrastructure.Message{}
-
 // TODO: i don't know am I need it,
 // but name is so cool, so I'll try to use it
 type RealTimeGenerator struct{}
+
+var goroutinesNum int = 64
 
 func main() {
 	db := infrastructure.NewDatabase()
@@ -25,7 +23,7 @@ func main() {
 	// create100Chats(db)
 	// create100Users(db)
 	// connectChatsWithUsers() // TODO: later
-	createMillionMessagesAsync(db)
+	createMessages(db)
 }
 
 func create100Chats(db *gorm.DB) {
@@ -44,41 +42,43 @@ func create100Users(db *gorm.DB) {
 	db.Model(&infrastructure.User{}).Count(&count)
 
 	if count == 0 {
-		for _, name := range pokemonNames {
-			db.Create(&infrastructure.User{Nickname: name})
-		}
-	}
+		var wg sync.WaitGroup
+		wg.Add(goroutinesNum)
 
+		for i := 0; i < goroutinesNum; i++ {
+			go func() {
+				defer wg.Done()
+
+				for _, name := range pokemonNames {
+					db.Create(&infrastructure.User{Nickname: name})
+				}
+			}()
+		}
+
+		wg.Wait()
+	}
 }
 
-func createMillionMessagesAsync(db *gorm.DB) {
-	// numCPU := runtime.NumCPU()
-	// fmt.Printf("cpu count: %d", numCPU)
-	// fmt.Println()
+func createMessages(db *gorm.DB) {
+	messagesNum := 16384 // it't 64*256
 
-	bestGoroutinesNum := 64
-	// start := time.Now()
 	var wg sync.WaitGroup
-	wg.Add(bestGoroutinesNum)
+	wg.Add(goroutinesNum)
 
-	for i := 0; i < bestGoroutinesNum; i++ {
+	for i := 0; i < goroutinesNum; i++ {
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 16384/bestGoroutinesNum; i++ {
+			for i := 0; i < messagesNum/goroutinesNum; i++ {
 				createMessage(db)
 			}
 		}()
 	}
 
 	wg.Wait()
-	// fmt.Println()
-	// fmt.Printf("Использовано горутин: %d, время выполнения: %v\n", g, time.Since(start))
 }
 
 func createMessage(db *gorm.DB) {
 	var msg = chatMessages[rand.Intn(len(chatMessages))]
-	// fmt.Println(msg)
-	// fmt.Print(".")
 	db.Create(&infrastructure.Message{
 		// TODO: hardcoded ids
 		ChatId: uint(rand.Intn(99) + 1),
