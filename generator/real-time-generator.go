@@ -58,34 +58,31 @@ func create100Users(db *gorm.DB) {
 	}
 }
 
-// func worker(db *gorm.DB, jobs <-chan int, results chan<- int) {
-// 	for j := range jobs {
-// 		createMessage(db)
-// 		results <- j
-// 	}
-// }
-
-func createMessages(db *gorm.DB) {
-	messagesNum := 200
-
+func workers(db *gorm.DB, jobsNum int, closure func(*gorm.DB)) {
 	var wg sync.WaitGroup
-	jobs := make(chan int, messagesNum)
+	jobs := make(chan int, jobsNum)
 
 	for w := 0; w < goroutinesNum; w++ {
 		go func() {
 			for range jobs {
-				createMessage(db)
+				closure(db)
 				wg.Done()
 			}
 		}()
 	}
 
-	wg.Add(messagesNum)
-	for j := 1; j <= messagesNum; j++ {
+	wg.Add(jobsNum)
+	for j := 1; j <= jobsNum; j++ {
 		jobs <- j
 	}
 	close(jobs)
 	wg.Wait()
+}
+
+func createMessages(db *gorm.DB) {
+	messagesNum := 100
+    workers(db, messagesNum, createMessage)
+
 }
 
 func createMessage(db *gorm.DB) {
