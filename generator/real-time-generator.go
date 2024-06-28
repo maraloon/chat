@@ -68,27 +68,24 @@ func create100Users(db *gorm.DB) {
 func createMessages(db *gorm.DB) {
 	messagesNum := 200
 
+	var wg sync.WaitGroup
 	jobs := make(chan int, messagesNum)
-	results := make(chan int, messagesNum)
 
-	for w := 0; w <= goroutinesNum; w++ {
+	for w := 0; w < goroutinesNum; w++ {
 		go func() {
-			for j := range jobs {
+			for range jobs {
 				createMessage(db)
-				results <- j
+				wg.Done()
 			}
 		}()
 	}
 
+	wg.Add(messagesNum)
 	for j := 1; j <= messagesNum; j++ {
 		jobs <- j
 	}
-
 	close(jobs)
-
-	for a := 1; a <= messagesNum; a++ {
-		<-results
-	}
+	wg.Wait()
 }
 
 func createMessage(db *gorm.DB) {
