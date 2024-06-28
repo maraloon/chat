@@ -14,58 +14,59 @@ import (
 // but name is so cool, so I'll try to use it
 type RealTimeGenerator struct{}
 
-var goroutinesNum int = 64
+const (
+	goroutinesNum = 64
+	chatsNum      = 100
+	usersNum      = 100
+	messagesNum   = 100000
+)
 
 func main() {
 	db := infrastructure.NewDatabase()
 
-	// create100Chats(db)
-	// create100Users(db)
+	createChats(db)
+	createUsers(db)
 	// connectChatsWithUsers() // TODO: later
 	createMessages(db)
 }
 
-func create100Chats(db *gorm.DB) {
-	var count int64
-	db.Model(&infrastructure.Chat{}).Count(&count)
+func createChats(db *gorm.DB) {
+	// var count int64
+	// db.Model(&infrastructure.Chat{}).Count(&count)
 
-	if count == 0 {
-		for i := 0; i < 100; i++ {
-			db.Create(&infrastructure.Chat{Name: generateRandomChatName()})
-		}
-	}
+	workers(chatsNum, func() {
+		db.Create(&infrastructure.Chat{Name: generateRandomChatName()})
+	})
 }
 
-func create100Users(db *gorm.DB) {
-	var count int64
-	db.Model(&infrastructure.User{}).Count(&count)
+func createUsers(db *gorm.DB) {
+	// var count int64
+	// db.Model(&infrastructure.User{}).Count(&count)
 
-	if count == 0 {
-		var wg sync.WaitGroup
-		wg.Add(goroutinesNum)
-
-		for i := 0; i < goroutinesNum; i++ {
-			go func() {
-				defer wg.Done()
-
-				for _, name := range pokemonNames {
-					db.Create(&infrastructure.User{Nickname: name})
-				}
-			}()
-		}
-
-		wg.Wait()
+	var i = 0
+	var pokemonName = func() string {
+		name := pokemonNames[i]
+		i++
+		return name
 	}
+
+	workers(usersNum, func() {
+		db.Create(&infrastructure.User{Nickname: pokemonName()})
+	})
 }
 
-func workers(db *gorm.DB, jobsNum int, closure func(*gorm.DB)) {
+func createMessages(db *gorm.DB) {
+	workers(messagesNum, func() { createMessage(db) })
+}
+
+func workers(jobsNum int, closure func()) {
 	var wg sync.WaitGroup
 	jobs := make(chan int, jobsNum)
 
 	for w := 0; w < goroutinesNum; w++ {
 		go func() {
 			for range jobs {
-				closure(db)
+				closure()
 				wg.Done()
 			}
 		}()
@@ -77,12 +78,6 @@ func workers(db *gorm.DB, jobsNum int, closure func(*gorm.DB)) {
 	}
 	close(jobs)
 	wg.Wait()
-}
-
-func createMessages(db *gorm.DB) {
-	messagesNum := 100
-    workers(db, messagesNum, createMessage)
-
 }
 
 func createMessage(db *gorm.DB) {

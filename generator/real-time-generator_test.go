@@ -10,5 +10,7 @@ var db = infrastructure.NewDatabase()
 // WARN: запускай внутри контейнера
 
 func TestAsyncMessages(t *testing.T) {
-    createMessages(db)
+	// create100Chats(db)
+	create100Users(db)
+	// createMessages(db)
 }
